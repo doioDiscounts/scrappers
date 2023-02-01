@@ -1,42 +1,31 @@
-# As soon as it opens, make it full screen
-
-from selenium import webdriver
-from dotenv import load_dotenv
-import os
-import time
-from selenium.webdriver.common.by import By
-from selenium.webdriver.common.action_chains import ActionChains
+import requests
 from utils import categoryConverter
-
-load_dotenv()
 
 def alkostoScrapper():
 
-    driver = webdriver.Chrome(executable_path=os.getenv('CHROMEDRIVER_PATH'))
-    action = ActionChains(driver)
     products = []
-    driver.get('https://www.alkosto.com/')
-    
-    for a in range(13):
-        for b in range(4):
-            action.move_to_element(driver.find_element(By.XPATH, f'/html/body/main/header/div[2]/nav[2]/div[4]/ul[1]/li[{a + 1}]/a')).perform()
-            time.sleep(2)
-            driver.find_element(By.XPATH, f'/html/body/main/header/div[2]/nav[2]/div[4]/ul[2]/li[{a + 2}]/div[{b + 2}]/a').click()
-            driver.get(f'{driver.current_url}?isGrid=true&pageSize=100')
-            for n in range(len(driver.find_elements(By.CSS_SELECTOR, '.product__grid--item.product__grid--alkosto'))):
-                try:
-                    if int(100 - ((int(driver.find_element(By.XPATH, f'/html/body/main/section/section/div/div/ul/li[{n + 1}]/div/div[3]/div[1]/p[2]/span[1]').text.replace('$', '').replace('.', '')) * 100) / int(driver.find_element(By.XPATH, f'/html/body/main/section/section/div/div/ul/li[{n + 1}]/div/div[3]/div[1]/p[1]').text.replace('$', '').replace('.', '')))) > 49:
-                        products.append({
-                            'discount': int(100 - ((int(driver.find_element(By.XPATH, f'/html/body/main/section/section/div/div/ul/li[{n + 1}]/div/div[3]/div[1]/p[2]/span[1]').text.replace('$', '').replace('.', '')) * 100) / int(driver.find_element(By.XPATH, f'/html/body/main/section/section/div/div/ul/li[{n + 1}]/div/div[3]/div[1]/p[1]').text.replace('$', '').replace('.', '')))),
-                            'title': driver.find_element(By.XPATH, f'/html/body/main/section/section/div/div/ul/li[{n + 1}]/div/div[2]/h2/a').text,
-                            'imageLink': f"https://www.alkosto.com{driver.find_element(By.XPATH, f'/html/body/main/section/section/div/div/ul/li[{n + 1}]/div/div[1]/div/div/a/img').get_attribute('data-src')}",
-                            'link': driver.find_element(By.XPATH, f'/html/body/main/section/section/div/div/ul/li[{n + 1}]/div/div[2]/h2/a').get_attribute('href'),
-                            'provider': 'Alkosto',
-                            'category': categoryConverter(driver.find_element(By.XPATH, '/html/body/main/section/div[1]/h1').text),
-                            'featured': 0
-                        })
-                except: pass
+    url = "https://qx5ips1b1q-dsn.algolia.net/1/indexes/*/queries?x-algolia-agent=Algolia%20for%20JavaScript%20(4.5.1)%3B%20Browser%20(lite)%3B%20instantsearch.js%20(4.40.3)%3B%20JS%20Helper%20(3.8.0)&x-algolia-api-key=04636813b7beb6abd08a7e35f8c880a1&x-algolia-application-id=QX5IPS1B1Q"
+    data = {
+    "requests": [
+        {
+            "indexName": "alkostoIndexAlgoliaPRD",
+            "params": "hitsPerPage=1000"
+        }
+    ]
+}
 
-    driver.quit()
+    response = requests.post(url, json=data)
+
+    for product in response.json()['results'][0]['hits']:
+        if 100 - (product['lowestprice_double'] * 100 / product['pricevalue_cop_double']) > 49:
+            products.append({
+                'title': product['name_text_es'],
+                'discount': 100 - (product['lowestprice_double'] * 100 / product['pricevalue_cop_double']),
+                'imageLink': f'https://www.alkosto.com{product["img-820wx820h_string"]}',
+                'link': f'https://www.alkosto.com{product["url_es_string"]}',
+                'provider': 'Alkosto',
+                'category': categoryConverter(product['categoryname_text_es_mv'][0]),
+                'featured': 0
+            })
 
     return products

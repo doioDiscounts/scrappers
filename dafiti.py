@@ -13,26 +13,27 @@ def dafitiScrapper():
     products = []
 
     for pageIndex in range(2):
-        for cardIndex in range(50):
-            driver.get(f'https://www.dafiti.com.co/precio-especial/?special_price=1&sort=discount&dir=desc&page={pageIndex + 1}')
-            driver.refresh()
+        driver.get(f'https://www.dafiti.com.co/precio-especial/?special_price=1&sort=discount&dir=desc&page={pageIndex + 1}')
+        driver.maximize_window()
+        driver.refresh()
+        y = 1000
+        for timer in range(0,25):
+            driver.execute_script("window.scrollTo(0, "+str(y)+")")
+            y += 1000  
             time.sleep(1)
-            driver.find_elements(By.CSS_SELECTOR, '.itm-product-main-info')[cardIndex].find_element(By.CSS_SELECTOR, '.itm-title').click()
-            time.sleep(1)
+        for product in range(50):
             try:
-
                 products.append({
-                    'title': driver.find_element(By.XPATH, '//*[@id="content"]/section/div[1]/div[2]/h3').text,
-                    'discount': driver.find_element(By.XPATH, '//*[@id="percent_box"]').text[1:-1],
-                    'link': driver.current_url,
+                    'title': driver.find_element(By.XPATH, f'/html/body/div[3]/div[1]/div[2]/div[4]/div[2]/div[3]/section/ul/li[{1 + product}]/div[2]/a[2]/div[3]/p[2]').text,
+                    'discount': driver.find_element(By.XPATH, f'/html/body/div[3]/div[1]/div[2]/div[4]/div[2]/div[3]/section/ul/li[{1 + product}]/div[2]/a[2]/div[2]/div').text[1:-1],
+                    'link': driver.find_element(By.XPATH, f'/html/body/div[3]/div[1]/div[2]/div[4]/div[2]/div[3]/section/ul/li[{1 + product}]/div[2]/a[2]').get_attribute('href'),
                     'provider': 'Dafiti',
                     'featured': 0,
-                    'category': categoryConverter(driver.find_element(By.XPATH, '//*[@id="content"]/div[2]/div[1]/ul/li[2]/a/span').text),
-                    'imageLink': driver.find_element(By.XPATH, '//*[@id="prdImage"]').get_attribute('src')
+                    'category': categoryConverter(driver.find_element(By.XPATH, f'/html/body/div[3]/div[1]/div[2]/div[4]/div[2]/div[3]/section/ul/li[{1 + product}]/div[2]/a[2]/div[3]/p[2]').text.split()[0]),
+                    'imageLink': driver.find_element(By.XPATH, f'/html/body/div[3]/div[1]/div[2]/div[4]/div[2]/div[3]/section/ul/li[{1 + product}]/div[2]/a[2]/div[1]/ul/li/img').get_attribute('src')
                 })
-            
             except: pass
     
     driver.quit()
-    
+
     return products

@@ -9,6 +9,7 @@ python-dotenv = "*"
 elasticsearch = "*"
 undetected-chromedriver = "*"
 requests = "*"
+beautifulsoup4 = "*"
 
 [dev-packages]
 

@@ -1,33 +1,23 @@
 
 from alkosto import alkostoScrapper
+from carulla import carullaScrapper
 from dafiti import dafitiScrapper
-from linio import linioScrapper
 from falabella import falabellaScrapper
+from gef import gefScrapper
+from mercadolibre import mercadolibreScrapper
+from panamericana import panamericanaScrapper
 from utils import pushToElasticSearch, setCategories, setProviders
 import json
 
+from velez import velezScrapper
+
 def runScrapersAndCategories():
 
-    #alkostoProducts = alkostoScrapper()
-    # falabellaProducts = falabellaScrapper()
-    #dafitiProducts = dafitiScrapper()
-    falabellaProducts = falabellaScrapper()
-    #linioProducts = linioScrapper()
+    products = alkostoScrapper() + carullaScrapper() + dafitiScrapper() + falabellaScrapper() + gefScrapper() + mercadolibreScrapper() + panamericanaScrapper() + velezScrapper()
+    print(len(products))
 
-    #pushToElasticSearch(alkostoProducts, "Alkosto")
-    # pushToElasticSearch(falabellaProducts, "Falabella")
-    # pushToElasticSearch(dafitiProducts, "Dafiti")
-    #pushToElasticSearch(linioProducts, 'Linio')
-
-    file = open('falabella.json', 'a')
-    file.write(json.dumps(falabellaProducts))
+    file = open('products.json', 'w')
+    file.write(json.dumps(products))
     file.close()
 
-    #setCategories()
-
-    #setProviders(['Linio'])
-
-
 runScrapersAndCategories()
-
-
